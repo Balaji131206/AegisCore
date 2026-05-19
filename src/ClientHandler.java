@@ -1,15 +1,21 @@
 import java.io.*;
 import java.net.*;
-import java.util.*;
 
 public class ClientHandler extends Thread 
 {
 
     private Socket socket;
+    private String clientId;
 
     public ClientHandler(Socket socket) 
     {
         this.socket = socket;
+        this.clientId = socket.getRemoteSocketAddress().toString();
+    }
+
+    public String getClientId() 
+    {
+        return clientId;
     }
 
     @Override
@@ -29,16 +35,16 @@ public class ClientHandler extends Thread
                             socket.getOutputStream(),
                             true);
 
-            output.println("Connected to server!");
+            output.println("[INFO] Connected to server!");
 
             String message;
 
             while ((message = input.readLine()) != null) 
             {
 
-                System.out.println("Client says: " + message);
+                System.out.println("[INFO] Client says: " + message);
 
-                output.println("Server received: " + message);
+                output.println("[INFO] Server received: " + message);
 
                 if (message.equalsIgnoreCase("exit")) 
                 {
@@ -46,13 +52,24 @@ public class ClientHandler extends Thread
                 }
             }
 
-            socket.close();
+            System.out.println("[INFO] Client disconnected.");
 
-            System.out.println("Client disconnected.");
-
-        } catch (IOException e) 
+        }
+        catch (IOException e) 
         {
             e.printStackTrace();
+        }
+        finally
+        {
+            SharedClientRegistry.removeClient(clientId);
+            try
+            {
+                socket.close();
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
         }
     }
 }
