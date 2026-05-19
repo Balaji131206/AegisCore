@@ -1,6 +1,5 @@
 import java.io.*;
 import java.net.*;
-import java.util.Scanner;
 
 public class Client 
 {
@@ -23,13 +22,19 @@ public class Client
                             socket.getOutputStream(),
                             true);
 
-            Scanner scanner = new Scanner(System.in);
+            BufferedReader userInput =
+                    new BufferedReader(
+                            new InputStreamReader(
+                                    System.in));
 
             System.out.println(input.readLine());
 
             while (true) {
                 System.out.print("Enter message to send to server (type 'exit' to quit): ");
-                String message = scanner.nextLine();
+                String message = userInput.readLine();
+
+                if (message == null) 
+                    break;
 
                 output.println(message);
 
@@ -37,14 +42,14 @@ public class Client
 
                 System.out.println(response);
 
-                if (message.equalsIgnoreCase("exit")) 
+                if (message.equalsIgnoreCase("exit") || response == null) 
                 {
                     break;
                 }
             }
 
             socket.close();
-            scanner.close();
+            userInput.close();
 
         } catch (IOException e) 
         {

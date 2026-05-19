@@ -1,17 +1,22 @@
 import java.io.*;
 import java.net.*;
 
-public class ClientHandler extends Thread 
+public class ClientHandler implements Runnable 
 {
-
+    private final SharedClientRegistry registry;
     private Socket socket;
     private String clientId;
 
-    public ClientHandler(Socket socket) 
+    public ClientHandler(Socket socket,
+                     SharedClientRegistry registry)
     {
-        this.socket = socket;
-        this.clientId = socket.getRemoteSocketAddress().toString();
-    }
+            this.socket = socket;
+            this.registry = registry;
+
+            this.clientId =
+                    socket.getRemoteSocketAddress()
+                        .toString();
+        }
 
     public String getClientId() 
     {
@@ -42,7 +47,7 @@ public class ClientHandler extends Thread
             while ((message = input.readLine()) != null) 
             {
 
-                System.out.println("[INFO] Client says: " + message);
+                System.out.println("[INFO] Client " + clientId + " says: " + message);
 
                 output.println("[INFO] Server received: " + message);
 
@@ -52,7 +57,7 @@ public class ClientHandler extends Thread
                 }
             }
 
-            System.out.println("[INFO] Client disconnected.");
+            System.out.println("[INFO] Client " + clientId + " disconnected.");
 
         }
         catch (IOException e) 
@@ -61,7 +66,7 @@ public class ClientHandler extends Thread
         }
         finally
         {
-            SharedClientRegistry.removeClient(clientId);
+            registry.removeClient(clientId);
             try
             {
                 socket.close();
