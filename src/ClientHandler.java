@@ -24,57 +24,52 @@ public class ClientHandler implements Runnable
     }
 
     @Override
-    public void run() 
-    {
-
-        try 
-        {
-
-            BufferedReader input =
-                    new BufferedReader(
-                            new InputStreamReader(
-                                    socket.getInputStream()));
-
-            PrintWriter output =
-                    new PrintWriter(
-                            socket.getOutputStream(),
-                            true);
-
-            output.println("[INFO] Connected to server!");
+    public void run() {
+        try (
+            BufferedReader input = new BufferedReader(
+                new InputStreamReader(
+                    socket.getInputStream()
+                )
+            );
+            PrintWriter output = new PrintWriter(
+                socket.getOutputStream(), 
+                true)
+            ) 
+            {
+                output.println("[INFO] Connected to server!");
 
             String message;
-
-            while ((message = input.readLine()) != null) 
-            {
-
+            while ((message = input.readLine()) != null) {
                 System.out.println("[INFO] Client " + clientId + " says: " + message);
-
                 output.println("[INFO] Server received: " + message);
 
-                if (message.equalsIgnoreCase("exit")) 
-                {
+                if (message.equalsIgnoreCase("exit")) {
                     break;
                 }
             }
 
             System.out.println("[INFO] Client " + clientId + " disconnected.");
+        } catch (IOException e) {
+            System.err.println("[ERROR] Connection error for client " + clientId + ": " + e.getMessage());
+        } finally {
+            cleanup();
+        }
+    }
 
+    private void cleanup() {
+        registry.removeClient(clientId);
+        closeSocket();
+    }
+
+    private void closeSocket() {
+        if (socket == null || socket.isClosed()) {
+            return;
         }
-        catch (IOException e) 
-        {
-            e.printStackTrace();
-        }
-        finally
-        {
-            registry.removeClient(clientId);
-            try
-            {
-                socket.close();
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
+
+        try {
+            socket.close();
+        } catch (IOException e) {
+            System.err.println("[ERROR] Failed to close socket for client " + clientId + ": " + e.getMessage());
         }
     }
 }
