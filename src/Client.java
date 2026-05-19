@@ -44,6 +44,7 @@ public class Client
             }
 
             socket.close();
+            scanner.close();
 
         } catch (IOException e) 
         {
