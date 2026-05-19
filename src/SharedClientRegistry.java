@@ -1,36 +1,55 @@
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SharedClientRegistry {
-    private static final ConcurrentHashMap<String, ClientHandler> connectedClients = new ConcurrentHashMap<>();
+public class SharedClientRegistry
+{
+    private static final ConcurrentHashMap<String, ClientHandler>
+            connectedClients = new ConcurrentHashMap<>();
 
-    public static void addClient(String clientId, ClientHandler handler)
-    {
-        ClientHandler existing =
-        connectedClients.putIfAbsent(clientId, handler);
+    private static final SharedClientRegistry instance = new SharedClientRegistry();
 
-        if (existing != null)
-        {
-            System.out.println("[ERROR] Duplicate client ID");
-        }
+    private SharedClientRegistry() {}
 
-        System.out.println("[INFO] Client connected: " + clientId);
+    public static SharedClientRegistry getInstance() {
+        return instance;
     }
 
-    public static void removeClient(String clientId)
+    public void addClient(String clientId,
+                          ClientHandler handler)
+    {
+        connectedClients.put(clientId, handler);
+
+        System.out.println(
+                "[INFO] Client connected: " + clientId
+        );
+        System.out.println("[INFO] Total connected clients: " + getClientCount());
+        System.out.println("[INFO] Connected clients: " + connectedClients.keySet());
+    }
+
+
+    public void removeClient(String clientId)
     {
         connectedClients.remove(clientId);
 
-        System.out.println("[INFO] Client disconnected: " + clientId);
+        System.out.println(
+                "[INFO] Client disconnected: " + clientId
+        );
+        System.out.println("[INFO] Total connected clients: " + getClientCount());
+        System.out.println("[INFO] Connected clients: " + connectedClients.keySet());
     }
 
-    public static ClientHandler getClient(String clientId)
+
+    public ClientHandler getClient(String clientId)
     {
         return connectedClients.get(clientId);
     }
 
-    public static void showConnectedClients()
+
+    public void showConnectedClients()
     {
-        System.out.println("[INFO] Currently connected clients:");
-        System.out.println(connectedClients.keySet().size());
-    }    
+        System.out.println("[INFO] Currently connected clients: " + connectedClients.keySet());
+    }
+
+    public int getClientCount() {
+        return connectedClients.size();
+    }
 }
