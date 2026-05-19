@@ -10,15 +10,7 @@ public class Server
     {
         // Register shutdown hook for graceful shutdown
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            System.out.println("\n[INFO] Server shutting down gracefully...");
-            try {
-                if (serverSocket != null && !serverSocket.isClosed()) {
-                    serverSocket.close();
-                    System.out.println("[INFO] ServerSocket closed.");
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            Server.shutdown();
         }));
 
         try {
@@ -46,9 +38,25 @@ public class Server
                 clientThread.start();
             }
 
-        }catch(IOException e)
-        {
-            e.printStackTrace();
+        } catch (IOException e) {
+            if (serverSocket != null && serverSocket.isClosed()) {
+                System.out.println("[INFO] Server stopped accepting connections.");
+            } else {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void shutdown() {
+        if (serverSocket == null || serverSocket.isClosed()) {
+            return;
+        }
+
+        try {
+            serverSocket.close();
+            System.out.println("[INFO] ServerSocket closed.");
+        } catch (IOException e) {
+            System.err.println("[ERROR] Failed to close ServerSocket: " + e.getMessage());
         }
     }
 }
