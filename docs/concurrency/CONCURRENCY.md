@@ -45,11 +45,11 @@ Client connects
 
 ---
 
-## 3. Shared Resources (Current)
+## 3. Shared Resources (Level 3 - Active)
 
-**Currently: NONE.** Each `ClientHandler` thread operates on its own private socket. There are zero shared data structures at Level 2.
+**Shared Registry:** `SharedClientRegistry` is a global singleton tracking all active connections in a thread-safe `ConcurrentHashMap`.
 
-This changes at Level 3 when a shared client registry is introduced.
+This enables high-performance real-time global broadcast messaging across all client threads without synchronization bottlenecks.
 
 ---
 
@@ -103,15 +103,15 @@ balance += 500;   // both write 1500 instead of 2000
 
 ---
 
-## 5. Synchronization Strategy (Level 3 Plan)
+## 5. Synchronization Strategy (Level 3 - Active)
 
-| Shared Resource | Strategy | Reason |
-|----------------|----------|--------|
-| Client registry | `CopyOnWriteArrayList` | Read-heavy, rare writes (connect/disconnect) |
-| User session map | `ConcurrentHashMap` | Frequent concurrent reads and writes |
-| Message counter/stats | `AtomicLong` | Lock-free increment |
-| Balance/financial data | `synchronized` method | Explicit lock semantics required |
-| Server running flag | `volatile boolean` | Single-writer visibility |
+| Shared Resource | Strategy | Status | Reason |
+|----------------|----------|--------|--------|
+| Client registry | `ConcurrentHashMap` | ✅ Implemented | High-performance thread-safe concurrent reads, writes, and iterations |
+| User session map | `ConcurrentHashMap` | ⏳ Level 8 | Frequent concurrent reads and writes |
+| Message counter/stats | `AtomicLong` | ⏳ Level 6 | Lock-free increment |
+| Balance/financial data | `synchronized` method | ⏳ Level 7 | Explicit lock semantics required |
+| Server running flag | `volatile boolean` | ⏳ Level 13 | Single-writer visibility |
 
 ---
 
@@ -151,8 +151,69 @@ A deadlock occurs when Thread A holds Lock 1 and waits for Lock 2, while Thread 
 
 | Level | Change | Why |
 |-------|--------|-----|
-| 3 | Shared registry with `CopyOnWriteArrayList` | Enable broadcast |
+| 3 | Shared registry with `ConcurrentHashMap` | ✅ Complete — Enables global real-time broadcast |
 | 6 | `ExecutorService` fixed thread pool | Prevent thread explosion |
 | 9 | Async event bus with `CompletableFuture` | Decouple components |
 | 11 | Java NIO — 1 thread handles all connections | 10,000x scalability |
 | 12 | Distributed coordination via ZooKeeper/Kafka | Multi-node state |
+
+---
+
+## 9. Shared State & Broadcast Implementation (Level 3)
+
+### 9.1 The Shared Client Registry (`SharedClientRegistry.java`)
+The server maintains a single instance of `SharedClientRegistry` using the thread-safe **Singleton Pattern**. 
+This registry maps client identifiers (`clientId` based on IP and port) to their respective `ClientHandler` instances using a thread-safe `ConcurrentHashMap`.
+
+```java
+public class SharedClientRegistry {
+    private static final ConcurrentHashMap<String, ClientHandler> connectedClients = new ConcurrentHashMap<>();
+    private static final SharedClientRegistry instance = new SharedClientRegistry();
+
+    private SharedClientRegistry() {}
+
+    public static SharedClientRegistry getInstance() {
+        return instance;
+    }
+    
+    public void addClient(String clientId, ClientHandler handler) {
+        connectedClients.put(clientId, handler);
+    }
+
+    public void removeClient(String clientId) {
+        connectedClients.remove(clientId);
+    }
+    
+    public void BroadcastMessage(String message) {
+        for (ClientHandler handler : connectedClients.values()) {
+            handler.sendMessage(message);
+        }
+    }
+}
+```
+
+### 9.2 Broadcast Execution Flow
+When a client sends a message, the server distributes it using a non-blocking background broadcast:
+
+```
+[Client] 
+   │ (TCP message: "hello world")
+   ▼
+[ClientHandler (Runnable Thread)]
+   │ 1. input.readLine() reads message
+   │ 2. registry.BroadcastMessage("[BROADCAST] ...")
+   ▼
+[SharedClientRegistry (Singleton)]
+   │ 3. Iterates over connectedClients.values()
+   ▼
+[ClientHandler 1] ──► sendMessage() ──► socket write (client 1)
+[ClientHandler 2] ──► sendMessage() ──► socket write (client 2)
+[ClientHandler N] ──► sendMessage() ──► socket write (client N)
+```
+
+### 9.3 Client Asynchronous Socket Listener
+To prevent blocking and visual latency on the client console when waiting for server broadcasts, `Client.java` is designed with an asynchronous dual-thread setup:
+1. **Main Thread**: Exclusively handles blocking keyboard input (`System.in`) and writes user messages directly to the server.
+2. **Listener Thread (`ServerListener` Daemon)**: Runs continuously in the background to read incoming messages from the socket and immediately print them on the terminal.
+
+This decouples keyboard rendering from socket buffer reading, enabling instant, real-time message distribution.

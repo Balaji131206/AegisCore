@@ -52,4 +52,12 @@ public class SharedClientRegistry
     public int getClientCount() {
         return connectedClients.size();
     }
+
+    public void BroadcastMessage(String message)
+    {
+        for (ClientHandler handler : connectedClients.values())
+        {
+            handler.sendMessage(message);
+        }
+    }
 }

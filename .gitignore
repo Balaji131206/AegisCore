@@ -53,3 +53,7 @@ logs/
 *.tmp
 *.temp
 ~*
+
+# System failure scenario docs
+failure_scenarios.md
+SUCCESSCRITERIA.md

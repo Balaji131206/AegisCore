@@ -12,7 +12,46 @@ Format:
 
 ---
 
-## [0.2.0] - 2026-05-18 — Level 2: Multithreading Entry
+## [0.0.5] - 2026-05-20 — Level 2.3: Logging Infrastructure & Concurrency Resilience
+
+### Added
+- `src/Logger.java` — A high-performance, thread-safe logging system writing to `/logs` directory under specific outputs:
+  - `Server.log` for overall socket server connections and lifecycles.
+  - `CliendHandler.log` for per-client messaging, input events, and thread states.
+  - `ClientID.log` for client-side diagnostic outputs.
+- `failure_scenarios.md` — Deep systems-level diagnostic documentation covering critical TCP server failure modes: Client Disconnects, Slow Consumers (Network Backpressure), and Message Storms.
+- Ignored local systems engineering documentation (`failure_scenarios.md`) by appending it to the root `.gitignore`.
+
+### Changed
+- Refactored `Server.java`, `ClientHandler.java`, and `Client.java` to route all server/client console and diagnostic outputs through the centralized thread-safe `Logger` utility.
+- Synchronized `ClientHandler.sendMessage()` method to prevent scrambled interleaved outputs and socket descriptor corruptions during high-frequency concurrent broadcasts.
+
+### Architecture Notes
+- Achieved thread-safe atomic file writing without external package dependencies (retaining plain Java 21 standard library compilation).
+- Solved socket write race conditions using atomic execution hooks inside the client thread broadcast pipeline.
+
+---
+
+## [0.0.4] - 2026-05-20 — Level 3: Shared State & Synchronization
+
+### Added
+- `SharedClientRegistry.java` — a thread-safe singleton global client registry using `ConcurrentHashMap` to track all connected clients.
+- `BroadcastMessage(String message)` method in `SharedClientRegistry` to iterate over active client handlers and safely distribute messages.
+- Asynchronous real-time messaging in `Client.java` using a background `ServerListener` daemon thread.
+- Dedicated `cleanup()` and self-unregistration lifecycle hook in `ClientHandler.java` to remove disconnected client IDs from the registry and close sockets cleanly.
+- Automated concurrency stress test suite under `tests/LoadTest.java` and `scripts/stress-test.ps1`.
+
+### Changed
+- Refactored `ClientHandler.java` to delegate global broadcast distribution through the thread-safe shared registry.
+- Simplified `Client.java` main loop to focus exclusively on reading keyboard input and writing to socket.
+
+### Architecture Notes
+- Achieved thread-safe shared state using high-performance concurrent collections (`ConcurrentHashMap`).
+- Formulated real-time client event loop avoiding synchronization bottlenecks.
+
+---
+
+## [0.0.3] - 2026-05-18 — Level 2: Multithreading Entry
 
 ### Added
 - `ClientHandler.java` — dedicated `Thread`-based handler for each connected client
@@ -36,7 +75,7 @@ Format:
 
 ---
 
-## [0.1.0] - 2026-05-17 — Level 1: Raw Socket Networking
+## [0.0.2] - 2026-05-17 — Level 1: Raw Socket Networking
 
 ### Added
 - `Server.java` — TCP server listening on port 5000

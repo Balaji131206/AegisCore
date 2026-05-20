@@ -10,7 +10,7 @@
 |-------|--------|
 | Level 0 — Java Core Foundation | ✅ Complete |
 | Level 1 — Raw Socket Networking | ✅ Complete (basic) |
-| Level 2 — Multithreading | 🔥 **CURRENT** |
+| Level 2 — Multithreading | 🔥 **CURRENT (Level 2.3 - Shared State)** |
 | Level 3 → 17 | ⏳ Upcoming |
 
 ---
@@ -504,7 +504,7 @@ When idle → handle other connections
 ```
 Level  0  [██████████] COMPLETE    Java Core Foundation
 Level  1  [██████████] COMPLETE    Raw Socket Networking
-Level  2  [████░░░░░░] IN PROGRESS Multithreading
+Level  2  [████████░░] IN PROGRESS Multithreading (Level 2.3 - Shared State)
 Level  3  [░░░░░░░░░░] UPCOMING    Shared State & Sync
 Level  4  [░░░░░░░░░░] UPCOMING    Server Architecture
 Level  5  [░░░░░░░░░░] UPCOMING    Command Engine
@@ -524,4 +524,4 @@ Level 17  [░░░░░░░░░░] UPCOMING    AI + Analytics Layer
 
 ---
 
-*Last updated: 2026-05-18 | Current Stage: Level 2 — Multithreading*
+*Last updated: 2026-05-20 | Current Stage: Level 2.3 — Multithreading: Shared State & Sync*

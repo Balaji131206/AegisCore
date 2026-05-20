@@ -16,11 +16,24 @@ public class ClientHandler implements Runnable
             this.clientId =
                     socket.getRemoteSocketAddress()
                         .toString();
-        }
+    }
 
     public String getClientId() 
     {
         return clientId;
+    }
+
+    public synchronized void sendMessage(String message)
+    {
+        try
+        {
+            PrintWriter output = new PrintWriter(socket.getOutputStream(), true);
+            output.println(message);
+              
+        } catch (IOException e) 
+        {
+            Logger.logClientHandlerError("Failed to send message to client " + clientId + ": " + e.getMessage());
+        }
     }
 
     @Override
@@ -34,23 +47,26 @@ public class ClientHandler implements Runnable
             PrintWriter output = new PrintWriter(
                 socket.getOutputStream(), 
                 true)
-            ) 
-            {
-                output.println("[INFO] Connected to server!");
+        ) 
+        {
+            output.println("[INFO] Connected to server!");
 
             String message;
             while ((message = input.readLine()) != null) {
-                System.out.println("[INFO] Client " + clientId + " says: " + message);
+                Logger.logClientHandler("Client " + clientId + " says: " + message);
+
                 output.println("[INFO] Server received: " + message);
+
+                registry.BroadcastMessage("[BROADCAST] " + clientId + " says: " + message);
 
                 if (message.equalsIgnoreCase("exit")) {
                     break;
                 }
             }
 
-            System.out.println("[INFO] Client " + clientId + " disconnected.");
+            Logger.logClientHandler("Client " + clientId + " disconnected.");
         } catch (IOException e) {
-            System.err.println("[ERROR] Connection error for client " + clientId + ": " + e.getMessage());
+            Logger.logClientHandlerError("Connection error for client " + clientId + ": " + e.getMessage());
         } finally {
             cleanup();
         }
@@ -61,6 +77,7 @@ public class ClientHandler implements Runnable
         closeSocket();
     }
 
+
     private void closeSocket() {
         if (socket == null || socket.isClosed()) {
             return;
@@ -69,7 +86,7 @@ public class ClientHandler implements Runnable
         try {
             socket.close();
         } catch (IOException e) {
-            System.err.println("[ERROR] Failed to close socket for client " + clientId + ": " + e.getMessage());
+            Logger.logClientHandlerError("Failed to close socket for client " + clientId + ": " + e.getMessage());
         }
     }
 }

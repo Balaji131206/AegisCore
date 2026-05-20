@@ -1,6 +1,6 @@
-# Distributed Multithreaded Secure Server
+# AegisCore - Concurrent Real-Time Communication Infrastructure
 
-> A scalable multithreaded TCP server built in Java — engineered as the foundation for banking infrastructure, trading systems, distributed compute engines, multiplayer game servers, IoT backends, and cybersecurity systems.
+> A scalable multithreaded concurrent TCP server built in Java — engineered as the foundation for banking infrastructure, trading systems, distributed compute engines, multiplayer game servers, IoT backends, and cybersecurity systems.
 
 ---
 
@@ -14,12 +14,12 @@ The system is being built across 17 engineering levels — from raw socket I/O t
 
 ## Current Development Stage
 
-**Level 2 — Multithreading** *(entering)*
+**Level 2.3 — Multithreading: Shared State & Sync** *(active)*
 
 ```
 Level 0 ✅  Java Core Foundation
 Level 1 ✅  Raw Socket Networking
-Level 2 🔥  Multithreading          ← YOU ARE HERE
+Level 2 🔥  Multithreading (Level 2.3) ← YOU ARE HERE
 Level 3     Shared State & Sync
 Level 4     Server Architecture
 Level 5     Command Engine
@@ -41,8 +41,8 @@ See [ROADMAP.md](./ROADMAP.md) for the complete engineering progression.
 | Bidirectional message exchange | ✅ Implemented |
 | Clean client disconnect (`exit`) | ✅ Implemented |
 | Blocking I/O model | ✅ Implemented |
-| Thread-safe client registry | ⏳ Level 3 |
-| Global broadcast messaging | ⏳ Level 3 |
+| Thread-safe client registry | ✅ Implemented (Level 2.3) |
+| Global broadcast messaging | ✅ Implemented (Level 2.3) |
 | Command engine (`/login`, `/msg`) | ⏳ Level 5 |
 | Thread pool (ExecutorService) | ⏳ Level 6 |
 | Database persistence | ⏳ Level 7 |

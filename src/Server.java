@@ -15,16 +15,16 @@ public class Server
 
         try {
             serverSocket = new ServerSocket(PORT);
-            System.out.println("Server is listening on port " + PORT);
+            Logger.logServer("Server is listening on port " + PORT);
 
             SharedClientRegistry registry = SharedClientRegistry.getInstance();
 
             while (true)
             {
-                System.out.println("Waiting for clients to connect...");
+                Logger.logServer("Waiting for clients to connect...");
                 Socket clientSocket = serverSocket.accept();
 
-                System.out.println("[INFO] New client connected: " + clientSocket.getInetAddress().getHostAddress());
+                Logger.logServer("New client connected: " + clientSocket.getInetAddress().getHostAddress());
 
                 // Handle the client connection in a new thread
                 ClientHandler clientHandler = new ClientHandler(clientSocket, registry);
@@ -40,9 +40,9 @@ public class Server
 
         } catch (IOException e) {
             if (serverSocket != null && serverSocket.isClosed()) {
-                System.out.println("[INFO] Server stopped accepting connections.");
+                Logger.logServer("Server stopped accepting connections.");
             } else {
-                e.printStackTrace();
+                Logger.logServerError("Server error occurred: " + e.getMessage());
             }
         }
     }
@@ -54,9 +54,9 @@ public class Server
 
         try {
             serverSocket.close();
-            System.out.println("[INFO] ServerSocket closed.");
+            Logger.logServer("ServerSocket closed.");
         } catch (IOException e) {
-            System.err.println("[ERROR] Failed to close ServerSocket: " + e.getMessage());
+            Logger.logServerError("Failed to close ServerSocket: " + e.getMessage());
         }
     }
 }
